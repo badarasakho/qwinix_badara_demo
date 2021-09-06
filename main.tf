@@ -22,6 +22,9 @@ module "host-project" {
 
 # Reference: https://registry.terraform.io/modules/terraform-google-modules/network/google/latest
 module "network" {
+  depends_on = [
+    module.host-project
+  ]
   source  = "terraform-google-modules/network/google"
   version = "3.4.0"
   # insert the 3 required variables here
@@ -70,6 +73,9 @@ module "network" {
 }
 
 module "service-project" {
+  depends_on = [
+    module.host-project
+  ]
   source  = "terraform-google-modules/project-factory/google"
   version = "11.1.1"
   # insert the 7 required variables here
@@ -87,6 +93,7 @@ module "service-project" {
 }
 
 resource "google_compute_instance" "vm_instance1" {
+    depends_on = [module.service-project, module.host-project, module.network]
     project = module.service-project.project_id
     zone = "us-central1-a"
     name = "myvm1"
@@ -110,7 +117,8 @@ resource "google_compute_instance" "vm_instance1" {
 }
 
 resource "google_storage_bucket" "badara-bucket" {
-  name = "bucket1-20210906-2"
+  depends_on = [module.service-project]
+  name = "bucket1-20210906-1"
   location = "US"
   project = module.service-project.project_id
 }
